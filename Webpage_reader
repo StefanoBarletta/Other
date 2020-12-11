@@ -1,0 +1,67 @@
+Option Explicit
+Public Const Current_Version As Double = 2.96
+
+Private Sub Workbook_Open()
+
+Dim Min_Version As Double
+
+If Application.UserName = "Saunders Stuart - MPS Support" Then
+Else
+
+    'Stop working after 31/10/2020
+'    If Format(Now, "yyyymmdd") > 20201231 Then
+'        msgbox "This application was built for testing during the period 01/11/2020 - 31/12/2020" & vbCrLf & vbCrLf & "As we are now outside of this period, the application will now close!", vbOKOnly + vbCritical, "IMPORTANT"
+'        Application.DisplayAlerts = False
+'        ThisWorkbook.Close
+'    Else
+
+    Min_Version = Get_Min_Version
+    DoEvents
+    If Min_Version > Current_Version Then
+        MsgBox "Specified minimum required version is greater than the current version." & vbCrLf & vbCrLf & "Please update, the application will now close!", vbOKOnly + vbCritical, "IMPORTANT"
+        Application.DisplayAlerts = False
+        ThisWorkbook.Close
+    End If
+
+End If
+
+'MsgBox StrDocuments
+'Sheets("Control").ScrollArea = "A1:G1"
+
+End Sub
+
+
+Private Sub test()
+    Dim Min_Version As Double
+    Min_Version = Get_Min_Version
+End Sub
+
+Private Function Get_Min_Version() As Double
+
+    Dim Browser As SHDocVw.InternetExplorer
+    Dim HTMLDoc As MSHTML.HTMLDocument
+    
+    On Error GoTo Error_Get_Min_Version
+    
+    ''Add references: Microsoft HTML Ojbect Library, Microsoft Internet Controls
+    ''requirement: Internet Explorer installed on user's machine
+    Set Browser = New SHDocVw.InternetExplorer                     ' create a browser
+    Browser.Visible = False                                        ' make it not visible
+    Browser.navigate "https://stbarletta.wixsite.com/smarttool"    ' navigate to page
+    Do
+        DoEvents
+    Loop Until Browser.readyState = READYSTATE_COMPLETE
+    
+    Set HTMLDoc = Browser.document                                 ' load the DOM object
+    Get_Min_Version = HTMLDoc.getElementById("comp-kihjcw7m").textContent
+    
+LetsContinue:
+    If Not Browser Is Nothing Then Browser.Quit
+    Set HTMLDoc = Nothing
+    Set Browser = Nothing
+    On Error GoTo -1
+    
+Error_Get_Min_Version:
+    MsgBox "Error : " & Err.Description & vbCrLf & vbCrLf & "Error Number: " & Err.Number, vbOKOnly + vbCritical, "Smart Tool"
+    Resume LetsContinue
+End Function
